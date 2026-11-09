@@ -5,3 +5,5 @@
 ^cusum-data$
 ^log-files$
 ^README\.md$
+^.*\.Rcheck$
+^.*\.tar\.gz$
