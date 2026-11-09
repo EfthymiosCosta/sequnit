@@ -1,0 +1,26 @@
+{
+    "id": "27934579",
+    "path": "~/Documents/sequnit/R/cusum_design.R",
+    "project_path": "R/cusum_design.R",
+    "type": "r_source",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1794219405133.0,
+    "source_on_save": false,
+    "relative_order": 1,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "36,69",
+        "scrollLine": "20"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1794233224,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1794233224161,
+    "read_only": false,
+    "read_only_alternatives": []
+}

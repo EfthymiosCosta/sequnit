@@ -1,0 +1,26 @@
+{
+    "id": "0E308F86",
+    "path": "~/Documents/sequnit/R/sequnit-package.R",
+    "project_path": "R/sequnit-package.R",
+    "type": "r_source",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1794224582089.0,
+    "source_on_save": false,
+    "relative_order": 6,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "20,24",
+        "scrollLine": "2"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1794224965,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1794224965816,
+    "read_only": false,
+    "read_only_alternatives": []
+}

@@ -1,0 +1,26 @@
+{
+    "id": "6EC23A53",
+    "path": "~/Documents/sequnit/tests/testthat/test-design.R",
+    "project_path": "tests/testthat/test-design.R",
+    "type": "r_source",
+    "hash": "3741784634",
+    "contents": "",
+    "dirty": false,
+    "created": 1794225412920.0,
+    "source_on_save": false,
+    "relative_order": 9,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "31,0",
+        "scrollLine": "7"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1794232432,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1794232432991,
+    "read_only": false,
+    "read_only_alternatives": []
+}

@@ -1,0 +1,15 @@
+# Both plots run on a log, and the region probabilities form a distribution.
+test_that("the plots run on a log", {
+  dir <- local_cusum()
+  set.seed(1)
+  for (i in 1:5)
+    expect_pval_small(function() runif(1), name = "p")
+  f <- file.path(dir, "p.jsonl")
+  grDevices::pdf(NULL)
+  withr::defer(grDevices::dev.off())
+  r <- plot_pval_log(f, M = 5)
+  expect_equal(nrow(r$regions), 5)
+  expect_equal(sum(r$regions$prob), 1, tolerance = 1e-8)
+  expect_no_error(plot_pval_steps(f))
+  expect_error(plot_pval_log(f, M = 0), "positive integer")
+})

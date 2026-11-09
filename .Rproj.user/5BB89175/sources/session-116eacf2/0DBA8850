@@ -1,0 +1,26 @@
+{
+    "id": "0DBA8850",
+    "path": "~/Documents/sequnit/R/expect_pval.R",
+    "project_path": "R/expect_pval.R",
+    "type": "r_source",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1794222085069.0,
+    "source_on_save": false,
+    "relative_order": 4,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "243,69",
+        "scrollLine": "231"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1794223622,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1794223622904,
+    "read_only": false,
+    "read_only_alternatives": []
+}
