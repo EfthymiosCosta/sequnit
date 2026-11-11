@@ -10,7 +10,7 @@
 #' [workflow_gen()] writes a workflow that runs the tests of a repository or
 #' package on pushes, on a schedule or by hand. It keeps the logs between runs
 #' on a branch of the repository or as a workflow artifact depending on permissions.
-#' Logs read with [read_pval_log()] can be printed and plotted, see
+#' Logs read with [read_cusum_log()] can be printed and plotted, see
 #' [plot.cusum_log()].
 #'
 #' @section The chart:

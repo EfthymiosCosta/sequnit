@@ -17,7 +17,7 @@
 )
 }
 \arguments{
-\item{x}{A log read by \code{\link[=read_pval_log]{read_pval_log()}}.}
+\item{x}{A log read by \code{\link[=read_cusum_log]{read_cusum_log()}}.}
 
 \item{type}{\code{"chart"} for the CUSUM chart, or \code{"steps"} for the number of
 tests run per commit.}
@@ -49,7 +49,7 @@ Invisibly, \code{x}. With \code{type = "chart"}, it also contains \code{regions}
 a data frame with the bounds and stationary probability of each region.
 }
 \description{
-Plots a log read by \code{\link[=read_pval_log]{read_pval_log()}}.
+Plots a log read by \code{\link[=read_cusum_log]{read_cusum_log()}}.
 }
 \details{
 With \code{type = "chart"}, it plots the CUSUM statistic, one point per commit,
@@ -68,7 +68,7 @@ old <- c(options(sequnit.dir = dir),
          sequnit_options(U0 = 100, n_bins = 31, n_scan = 4))
 for (i in 1:20)
   expect_pval(function() runif(1), name = "example")
-log <- read_pval_log(file.path(dir, "example.jsonl"))
+log <- read_cusum_log(file.path(dir, "example.jsonl"))
 plot(log)
 plot(log, type = "steps")
 plot(log, line_args = list(col = "navy"), point_args = list(col = "red"))

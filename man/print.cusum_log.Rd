@@ -7,7 +7,7 @@
 \method{print}{cusum_log}(x, ...)
 }
 \arguments{
-\item{x}{A log read by \code{\link[=read_pval_log]{read_pval_log()}}.}
+\item{x}{A log read by \code{\link[=read_cusum_log]{read_cusum_log()}}.}
 
 \item{...}{Further arguments passed to or from other methods.}
 }
@@ -25,6 +25,6 @@ old <- c(options(sequnit.dir = dir),
          sequnit_options(U0 = 100, n_bins = 31, n_scan = 4))
 for (i in 1:5)
   expect_pval(function() runif(1), name = "example")
-read_pval_log(file.path(dir, "example.jsonl"))
+read_cusum_log(file.path(dir, "example.jsonl"))
 options(old)
 }

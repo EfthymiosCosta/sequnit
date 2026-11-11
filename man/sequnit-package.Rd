@@ -17,7 +17,7 @@ The package also provides a ready-made GitHub Actions pipeline:
 \code{\link[=workflow_gen]{workflow_gen()}} writes a workflow that runs the tests of a repository or
 package on pushes, on a schedule or by hand. It keeps the logs between runs
 on a branch of the repository or as a workflow artifact depending on permissions.
-Logs read with \code{\link[=read_pval_log]{read_pval_log()}} can be printed and plotted, see
+Logs read with \code{\link[=read_cusum_log]{read_cusum_log()}} can be printed and plotted, see
 \code{\link[=plot.cusum_log]{plot.cusum_log()}}.
 }
 \section{The chart}{

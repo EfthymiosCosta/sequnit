@@ -42,7 +42,7 @@
 #' on the x-axis. Used by `plot.cusum_log()`.
 #'
 #' @inheritParams plot.cusum_log
-#' @param log A log read by `read_pval_log()`.
+#' @param log A log read by `read_cusum_log()`.
 #' @param prefix Text placed before the chart's name in the default title.
 #' @return A list with the log's `header` and `data`, the title `main`, the
 #'   x positions `x`, the x-axis limits `xlim`, and the tick positions `ticks`
@@ -79,7 +79,7 @@
 
 #' Plot a CUSUM log
 #'
-#' Plots a log read by [read_pval_log()].
+#' Plots a log read by [read_cusum_log()].
 #'
 #' With `type = "chart"`, it plots the CUSUM statistic, one point per commit,
 #' against coloured bands from green at 0 to red at `H`. Dashed lines mark `h`
@@ -90,7 +90,7 @@
 #' (equivalently, the number of p-values drawn). A dashed line marks the
 #' maximum, `amax`.
 #'
-#' @param x A log read by [read_pval_log()].
+#' @param x A log read by [read_cusum_log()].
 #' @param type `"chart"` for the CUSUM chart, or `"steps"` for the number of
 #'   tests run per commit.
 #' @param M Number of equal-width regions of \eqn{[0, H]}. Each region is
@@ -119,7 +119,7 @@
 #'          sequnit_options(U0 = 100, n_bins = 31, n_scan = 4))
 #' for (i in 1:20)
 #'   expect_pval(function() runif(1), name = "example")
-#' log <- read_pval_log(file.path(dir, "example.jsonl"))
+#' log <- read_cusum_log(file.path(dir, "example.jsonl"))
 #' plot(log)
 #' plot(log, type = "steps")
 #' plot(log, line_args = list(col = "navy"), point_args = list(col = "red"))
@@ -197,7 +197,7 @@ plot.cusum_log <- function(x, type = c("chart", "steps"), M = 10, main = NULL,
 #' Shows the chart's name, settings and thresholds, the number of commits and
 #' test runs, the current CUSUM statistic and the signals so far.
 #'
-#' @param x A log read by [read_pval_log()].
+#' @param x A log read by [read_cusum_log()].
 #' @param ... Further arguments passed to or from other methods.
 #'
 #' @return Invisibly, `x`.
@@ -209,7 +209,7 @@ plot.cusum_log <- function(x, type = c("chart", "steps"), M = 10, main = NULL,
 #'          sequnit_options(U0 = 100, n_bins = 31, n_scan = 4))
 #' for (i in 1:5)
 #'   expect_pval(function() runif(1), name = "example")
-#' read_pval_log(file.path(dir, "example.jsonl"))
+#' read_cusum_log(file.path(dir, "example.jsonl"))
 #' options(old)
 #' @export
 print.cusum_log <- function(x, ...) {
@@ -226,7 +226,7 @@ print.cusum_log <- function(x, ...) {
     if (last && nchar(rows[last]) + 1 + nchar(item) <= width) rows[last] <- paste(rows[last], item)
     else rows <- c(rows, item)
   }
-  cat("CUSUM log: ", hd$name, "\n", sep = "")
+  cat("Log of CUSUM chart: ", hd$name, "\n", sep = "")
   line("Created", hd$created)
   line("Settings", paste(rows, collapse = paste0("\n", strrep(" ", 12))))
   line("Thresholds", sprintf("h = %s, H = %s, v = %s", format(hd$h), format(hd$H), format(hd$v)))

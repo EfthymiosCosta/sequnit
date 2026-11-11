@@ -24,7 +24,7 @@
 #' @param objs List of lists, one per line.
 #' @return Invisibly, `file_path`.
 #' @noRd
-.append_pval_log <- function(file_path, objs) {
+.append_log <- function(file_path, objs) {
   lines <- vapply(
     objs,
     function(o) as.character(jsonlite::toJSON(o, auto_unbox = TRUE, digits = NA, na = "null")),
@@ -43,7 +43,7 @@
 #' @param file_path Path to the log file.
 #' @return The header as a list.
 #' @noRd
-.read_pval_header <- function(file_path) {
+.read_log_header <- function(file_path) {
   if (!file.exists(file_path))
     stop("Log file not found: ", file_path, call. = FALSE)
   con <- file(file_path, open = "r", encoding = "UTF-8")
@@ -62,7 +62,7 @@
 #' @param file_path Path to the log file.
 #' @return The last line as a list, or `NULL` if the log has no commits yet.
 #' @noRd
-.read_pval_last <- function(file_path) {
+.read_log_last <- function(file_path) {
   if (!file.exists(file_path))
     stop("Log file not found: ", file_path, call. = FALSE)
   lines <- readLines(file_path, warn = FALSE)
@@ -72,9 +72,10 @@
   jsonlite::fromJSON(lines[length(lines)])
 }
 
-#' Read a CUSUM log
+#' Read the log of a CUSUM chart
 #'
-#' Reads a log written by [expect_pval()].
+#' Reads the log file that [expect_pval()] keeps for a chart, with the chart's
+#' design and one line per user commit.
 #'
 #' @param file_path Path to the log file.
 #'
@@ -90,11 +91,11 @@
 #' old <- c(options(sequnit.dir = dir),
 #'          sequnit_options(U0 = 100, n_bins = 31, n_scan = 4))
 #' expect_pval(function() runif(1), name = "example")
-#' read_pval_log(file.path(dir, "example.jsonl"))
+#' read_cusum_log(file.path(dir, "example.jsonl"))
 #' options(old)
 #' @export
-read_pval_log <- function(file_path) {
-  header <- .read_pval_header(file_path)
+read_cusum_log <- function(file_path) {
+  header <- .read_log_header(file_path)
   lines <- readLines(file_path, warn = FALSE)
   lines <- lines[nzchar(lines)]
   entries <- lapply(lines[-1], jsonlite::fromJSON)
@@ -151,7 +152,7 @@ read_pval_log <- function(file_path) {
 #'   either way.
 #'
 #' @seealso [sequnit_options()] for the design settings, [cusum_design()] for
-#'   the design, [read_pval_log()] and [plot.cusum_log()] for the log,
+#'   the design, [read_cusum_log()] and [plot.cusum_log()] for the log,
 #'   [workflow_gen()] to run the tests on GitHub Actions.
 #'
 #' @examples
@@ -176,7 +177,7 @@ expect_pval <- function(pval_fun, name) {
   }
   new_log <- !file.exists(file_path)
   if (!new_log) {
-    header <- .read_pval_header(file_path)
+    header <- .read_log_header(file_path)
     settings <- sequnit_options()
     keys <- intersect(c("alpha", "power", "U0", "cbar0max", "amax", "p_leave", "n_bins"), names(header))
     changed <- keys[!vapply(keys, function(k) isTRUE(all.equal(header[[k]], settings[[k]])), logical(1))]
@@ -201,7 +202,7 @@ expect_pval <- function(pval_fun, name) {
                    v = .round_up(d$v, .log_digits), u1 = round(d$u1, .log_digits))
     S_prev <- 0
   } else {
-    last <- .read_pval_last(file_path)
+    last <- .read_log_last(file_path)
     S_prev <- if (is.null(last)) 0 else last$S
   }
   S <- S_prev
@@ -218,7 +219,7 @@ expect_pval <- function(pval_fun, name) {
   crossed <- signal && S_prev < header$h
   timestamp <- format(Sys.time(), "%Y-%m-%d %H:%M:%S")
   entry <- list(signal = as.integer(signal), t = timestamp, S = S, steps = steps)
-  .append_pval_log(file_path, if (new_log) list(header, entry) else list(entry))
+  .append_log(file_path, if (new_log) list(header, entry) else list(entry))
   if (new_log) message("expect_pval(): created log '", file_path, "'.")
   failure_message <- sprintf(
     "CUSUM chart '%s' %s the signalling threshold: S = %.4f >= h = %.4f after %d computational step%s.",

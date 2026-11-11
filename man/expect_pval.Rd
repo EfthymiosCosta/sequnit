@@ -52,6 +52,6 @@ options(old)
 }
 \seealso{
 \code{\link[=sequnit_options]{sequnit_options()}} for the design settings, \code{\link[=cusum_design]{cusum_design()}} for
-the design, \code{\link[=read_pval_log]{read_pval_log()}} and \code{\link[=plot.cusum_log]{plot.cusum_log()}} for the log,
+the design, \code{\link[=read_cusum_log]{read_cusum_log()}} and \code{\link[=plot.cusum_log]{plot.cusum_log()}} for the log,
 \code{\link[=workflow_gen]{workflow_gen()}} to run the tests on GitHub Actions.
 }

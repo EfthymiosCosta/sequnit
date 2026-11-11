@@ -28,7 +28,7 @@ test_that("each commit continues from the last S", {
   r1 <- expect_pval_small(function() runif(1), name = "b")
   r2 <- expect_pval_small(function() runif(1), name = "b")
   expect_equal(r2$S_prev, r1$S)
-  expect_equal(nrow(read_pval_log(file.path(dir, "b.jsonl"))$data), 2)
+  expect_equal(nrow(read_cusum_log(file.path(dir, "b.jsonl"))$data), 2)
 })
 
 # A p-value of 0 sends the chart to H, so it signals. The signal fails the
@@ -40,7 +40,7 @@ test_that("a signal fails the test, or warns when sequnit.fail_on_signal is FALS
   withr::local_options(sequnit.fail_on_signal = FALSE)
   expect_warning(r <- expect_pval_small(function() 0, name = "c"), "remains above")
   expect_true(r$signal)
-  expect_equal(read_pval_log(file.path(dir, "c.jsonl"))$data$signal, c(1L, 1L))
+  expect_equal(read_cusum_log(file.path(dir, "c.jsonl"))$data$signal, c(1L, 1L))
 })
 
 # pval_fun must be a function, and it must return a single number in [0, 1].

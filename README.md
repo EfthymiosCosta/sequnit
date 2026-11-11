@@ -37,7 +37,7 @@ commit and push it.
 To look at a chart:
 
 ```r
-log <- read_pval_log("rbinom_gof.jsonl")
+log <- read_cusum_log("rbinom_gof.jsonl")
 log
 plot(log)
 plot(log, type = "steps")
