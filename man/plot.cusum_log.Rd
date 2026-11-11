@@ -11,6 +11,8 @@
   main = NULL,
   time_format = NULL,
   n_ticks = 6,
+  line_args = list(),
+  point_args = list(),
   ...
 )
 }
@@ -32,7 +34,15 @@ if the log spans less than an hour.}
 
 \item{n_ticks}{Maximum number of labelled commits on the x-axis.}
 
-\item{...}{Not used.}
+\item{line_args}{List of arguments passed to \code{\link[=lines]{lines()}} for the line through
+the commits (\code{type = "chart"}) or the bars (\code{type = "steps"}), e.g.
+\code{list(col = "navy", lwd = 1)}.}
+
+\item{point_args}{List of arguments passed to \code{\link[=points]{points()}} for the point of
+each commit, e.g. \code{list(col = "red", pch = 1)}.}
+
+\item{...}{Further graphical arguments passed to \code{\link[=plot]{plot()}}, e.g.
+\code{cex.main} or \code{ylab}.}
 }
 \value{
 Invisibly, \code{x}. With \code{type = "chart"}, it also contains \code{regions},
@@ -61,5 +71,6 @@ for (i in 1:20)
 log <- read_pval_log(file.path(dir, "example.jsonl"))
 plot(log)
 plot(log, type = "steps")
+plot(log, line_args = list(col = "navy"), point_args = list(col = "red"))
 options(old)
 }

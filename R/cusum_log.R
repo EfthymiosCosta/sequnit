@@ -64,6 +64,19 @@
        ticks = ticks, tick_labels = format(times[ticks], time_format))
 }
 
+#' Group threshold labels that would overlap
+#'
+#' Puts the thresholds, in increasing order, into groups whose neighbouring
+#' values are closer than `min_gap`, so that each group gets one label.
+#'
+#' @param y Named thresholds in increasing order, such as `c(v = , h = , H = )`.
+#' @param min_gap Smallest vertical distance between two separate labels.
+#' @return A list of named numeric vectors, one per group.
+#' @noRd
+.group_labels <- function(y, min_gap) {
+  split(y, cumsum(c(TRUE, diff(y) >= min_gap)))
+}
+
 #' Plot a CUSUM log
 #'
 #' Plots a log read by [read_pval_log()].
@@ -88,7 +101,13 @@
 #'   [format.POSIXct()]. Defaults to date and time on two lines, with seconds
 #'   if the log spans less than an hour.
 #' @param n_ticks Maximum number of labelled commits on the x-axis.
-#' @param ... Not used.
+#' @param line_args List of arguments passed to [lines()] for the line through
+#'   the commits (`type = "chart"`) or the bars (`type = "steps"`), e.g.
+#'   `list(col = "navy", lwd = 1)`.
+#' @param point_args List of arguments passed to [points()] for the point of
+#'   each commit, e.g. `list(col = "red", pch = 1)`.
+#' @param ... Further graphical arguments passed to [plot()], e.g.
+#'   `cex.main` or `ylab`.
 #'
 #' @return Invisibly, `x`. With `type = "chart"`, it also contains `regions`,
 #'   a data frame with the bounds and stationary probability of each region.
@@ -103,20 +122,29 @@
 #' log <- read_pval_log(file.path(dir, "example.jsonl"))
 #' plot(log)
 #' plot(log, type = "steps")
+#' plot(log, line_args = list(col = "navy"), point_args = list(col = "red"))
 #' options(old)
 #' @export
 plot.cusum_log <- function(x, type = c("chart", "steps"), M = 10, main = NULL,
-                           time_format = NULL, n_ticks = 6, ...) {
+                           time_format = NULL, n_ticks = 6, line_args = list(),
+                           point_args = list(), ...) {
   type <- match.arg(type)
+  if (!is.list(line_args) || !is.list(point_args))
+    stop("`line_args` and `point_args` must be lists.", call. = FALSE)
   if (type == "steps") {
     pr <- .prep_plot_log(x, main, "Computational steps: ", time_format, n_ticks)
     hd <- pr$header
     op <- par(mar = c(5.5, 4.5, 3, 4.5))
     on.exit(par(op))
-    plot(pr$x, pr$data$steps, type = "h", lwd = 2, xlim = pr$xlim, ylim = c(0, hd$amax),
-         xaxs = "i", xaxt = "n", yaxt = "n", xlab = "", ylab = "computational steps",
-         main = pr$main)
-    points(pr$x, pr$data$steps, pch = 16, cex = 0.5)
+    do.call(plot, utils::modifyList(list(x = pr$x, y = pr$data$steps, type = "n",
+                                         xlim = pr$xlim, ylim = c(0, hd$amax), xaxs = "i",
+                                         xaxt = "n", yaxt = "n", xlab = "",
+                                         ylab = "computational steps", main = pr$main),
+                                    list(...)))
+    do.call(lines, utils::modifyList(list(x = pr$x, y = pr$data$steps, type = "h", lwd = 2),
+                                     line_args))
+    do.call(points, utils::modifyList(list(x = pr$x, y = pr$data$steps, pch = 16, cex = 0.5),
+                                      point_args))
     abline(h = hd$amax, col = "firebrick", lty = 2, lwd = 2)
     axis(2, at = unique(round(pretty(c(0, hd$amax)))), las = 1)
     axis(1, at = pr$ticks, labels = pr$tick_labels, cex.axis = 0.8, padj = 0.5)
@@ -132,8 +160,11 @@ plot.cusum_log <- function(x, type = c("chart", "steps"), M = 10, main = NULL,
   band_cols <- colorRampPalette(c("#66cc66", "#fffbc8", "#fc9272", "#de2d26"))(100)
   op <- par(mar = c(5.5, 4.5, 3, 4.5))
   on.exit(par(op))
-  plot(NA, xlim = pr$xlim, ylim = c(0, hd$H), xaxs = "i", yaxs = "i", xaxt = "n",
-       xlab = "", ylab = expression("CUSUM statistic " * S[t]), main = pr$main)
+  do.call(plot, utils::modifyList(list(x = NA, xlim = pr$xlim, ylim = c(0, hd$H), xaxs = "i",
+                                       yaxs = "i", xaxt = "n", xlab = "",
+                                       ylab = expression("CUSUM statistic " * S[t]),
+                                       main = pr$main),
+                                  list(...)))
   usr <- par("usr")
   rect(usr[1], band_breaks[-101], usr[2], band_breaks[-1], col = band_cols, border = NA)
   if (M > 1)
@@ -143,10 +174,14 @@ plot.cusum_log <- function(x, type = c("chart", "steps"), M = 10, main = NULL,
   abline(h = hd$v, col = "grey30", lty = 3, lwd = 2)
   abline(h = c(hd$h, hd$H), col = "grey30", lty = 2, lwd = 2)
   x_lab <- usr[1] + 0.01 * (usr[2] - usr[1])
-  text(x_lab, c(hd$v, hd$h), c("v", "h"), adj = c(0, -0.4), cex = 0.85, font = 2, col = "grey20")
-  text(x_lab, hd$H, "H", adj = c(0, 1.4), cex = 0.85, font = 2, col = "grey20")
-  lines(pr$x, pr$data$S, type = "l", lwd = 2)
-  points(pr$x, pr$data$S, pch = 16, cex = 0.5)
+  for (g in .group_labels(c(v = hd$v, h = hd$h, H = hd$H), 1.5 * strheight("h", cex = 0.85))) {
+    top <- "H" %in% names(g)
+    text(x_lab, if (top) hd$H else max(g), paste(names(g), collapse = ", "),
+         adj = c(0, if (top) 1.4 else -0.4), cex = 0.85, font = 2, col = "grey20")
+  }
+  do.call(lines, utils::modifyList(list(x = pr$x, y = pr$data$S, lwd = 2), line_args))
+  do.call(points, utils::modifyList(list(x = pr$x, y = pr$data$S, pch = 16, cex = 0.5),
+                                    point_args))
   axis(1, at = pr$ticks, labels = pr$tick_labels, cex.axis = 0.8, padj = 0.5)
   title(xlab = "commit", line = 4)
   axis(4, at = c(0, hd$v, hd$H), labels = FALSE)
@@ -163,7 +198,7 @@ plot.cusum_log <- function(x, type = c("chart", "steps"), M = 10, main = NULL,
 #' test runs, the current CUSUM statistic and the signals so far.
 #'
 #' @param x A log read by [read_pval_log()].
-#' @param ... Not used.
+#' @param ... Further arguments passed to or from other methods.
 #'
 #' @return Invisibly, `x`.
 #'

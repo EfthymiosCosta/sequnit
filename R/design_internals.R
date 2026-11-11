@@ -237,24 +237,30 @@
 #' Find the h at which u0 reaches U0
 #'
 #' Finds an interval `[lo, hi]` with `u0(lo) < U0 <= u0(hi)` and uses `uniroot()`
-#' to determine the value of `h` for which the U0 criterion is met.
+#' to determine the value of `h` for which the U0 criterion is met. If `u0`
+#' still meets `U0` at `h_min`, `U0` does not constrain the design, and it
+#' stops with an error.
 #'
 #' @param u0_at Function of `h` returning `u0`.
 #' @param U0 Target value of `u0`.
 #' @param start Starting value of `h`.
+#' @param h_min Smallest value of `h` considered.
 #' @return The value of `h`.
 #' @noRd
-.solve_h <- function(u0_at, U0, start) {
+.solve_h <- function(u0_at, U0, start, h_min = 1e-3) {
   g <- function(h) {
     u <- u0_at(h)
     if (!is.finite(u) || u <= 0) Inf else log(u) - log(U0)
   }
-  lo <- start
+  lo <- max(start, h_min)
   g_lo <- g(lo)
-  while (g_lo > 0) {
-    lo <- lo / 2
+  while (g_lo > 0 && lo > h_min) {
+    lo <- max(lo / 2, h_min)
     g_lo <- g(lo)
   }
+  if (g_lo > 0)
+    stop(sprintf("U0 = %s is too small for these settings; use a larger U0.", format(U0)),
+         call. = FALSE)
   hi <- lo
   g_hi <- g_lo
   while (g_hi < 0) {

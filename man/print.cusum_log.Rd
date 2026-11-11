@@ -9,7 +9,7 @@
 \arguments{
 \item{x}{A log read by \code{\link[=read_pval_log]{read_pval_log()}}.}
 
-\item{...}{Not used.}
+\item{...}{Further arguments passed to or from other methods.}
 }
 \value{
 Invisibly, \code{x}.
