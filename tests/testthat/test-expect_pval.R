@@ -32,12 +32,12 @@ test_that("each commit continues from the last S", {
 })
 
 # A p-value of 0 sends the chart to H, so it signals. The signal fails the
-# test, or gives a warning when cusum.fail_on_signal is FALSE, and is logged
+# test, or gives a warning when sequnit.fail_on_signal is FALSE, and is logged
 # either way.
-test_that("a signal fails the test, or warns when cusum.fail_on_signal is FALSE", {
+test_that("a signal fails the test, or warns when sequnit.fail_on_signal is FALSE", {
   dir <- local_cusum()
   expect_failure(expect_pval_small(function() 0, name = "c"), "has crossed")
-  withr::local_options(cusum.fail_on_signal = FALSE)
+  withr::local_options(sequnit.fail_on_signal = FALSE)
   expect_warning(r <- expect_pval_small(function() 0, name = "c"), "remains above")
   expect_true(r$signal)
   expect_equal(read_pval_log(file.path(dir, "c.jsonl"))$data$signal, c(1L, 1L))

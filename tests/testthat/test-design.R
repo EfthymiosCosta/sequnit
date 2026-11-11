@@ -11,9 +11,9 @@ test_that("a design meets its constraints", {
 # reads it back without running the search.
 test_that("designs are cached and read back", {
   dir <- withr::local_tempdir()
-  d1 <- do.call(cusum_design, c(small, list(design_dir = dir, quiet = TRUE)))
+  d1 <- do.call(cusum_design, c(small, list(cores = 1, design_dir = dir, quiet = TRUE)))
   expect_length(list.files(dir), 1)
-  expect_silent(d2 <- do.call(cusum_design, c(small, list(design_dir = dir))))
+  expect_silent(d2 <- do.call(cusum_design, c(small, list(cores = 1, design_dir = dir))))
   expect_equal(d2[names(d1)], d1)
 })
 

@@ -4,60 +4,13 @@
 \alias{expect_pval}
 \title{Update a CUSUM chart by one commit}
 \usage{
-expect_pval(
-  pval_fun,
-  name,
-  dir = getOption("cusum.group", getOption("cusum.dir", ".")),
-  alpha = 0.05,
-  power = 0.2,
-  U0 = 1e+05,
-  cbar0max = 1.1,
-  amax = 10,
-  p_leave = 0.01,
-  n_bins = 151,
-  n_scan = 30,
-  cores = NULL,
-  design_dir = file.path(getOption("cusum.dir", "."), "designs"),
-  quiet = FALSE
-)
+expect_pval(pval_fun, name)
 }
 \arguments{
 \item{pval_fun}{A function with no arguments that runs the test
 once and returns its p-value.}
 
-\item{name}{Name of the chart. Its log file is \verb{<name>.jsonl} in \code{dir}.}
-
-\item{dir}{Folder of the log. Defaults to the folder of the current
-\code{\link[=cusum_group]{cusum_group()}}, or else the option \code{cusum.dir}, or else the working
-directory.}
-
-\item{alpha}{Significance level of a single test run.}
-
-\item{power}{Power of a single test run against the smallest defect to detect.}
-
-\item{U0}{Minimum average number of user commits until a false alarm when the
-code has no defect, assuming the associated chart starts from 0.}
-
-\item{cbar0max}{Maximum average number of test runs per user commit when the
-code has no defect.}
-
-\item{amax}{Maximum number of test runs per user commit.}
-
-\item{p_leave}{Probability that the chart starts from \code{H} and ends below \code{h}
-within one one user commit when the code has no defect.}
-
-\item{n_bins}{Number of bins used in the discretisation for the Markov chain
-approximation. More bins are more accurate but slower.}
-
-\item{n_scan}{Number of values of \code{h} evaluated in the initial scan.}
-
-\item{cores}{Number of cores used for the initial scan. Defaults to all
-available cores.}
-
-\item{design_dir}{Folder of cached designs. Defaults to \verb{designs/} inside
-the option \code{cusum.dir}, so that all charts share one cache.}
-
-\item{quiet}{If \code{TRUE}, no progress messages are shown.}
+\item{name}{Name of the chart. Its log file is \verb{<name>.jsonl}.}
 }
 \value{
 Invisibly, a list describing the commit: \code{name}, \code{file},
@@ -76,24 +29,29 @@ chart is at or above \code{v}. The statistic \code{S} is rounded to four
 decimals at the end of each commit, and the next commit continues from
 that value.
 
-The settings \code{alpha}, \code{power}, \code{U0}, \code{cbar0max}, \code{amax}, \code{p_leave},
-\code{n_bins} and \code{n_scan} are only used when the log is created. Later calls
-use the design stored in the log's header.
+A new chart is designed with the settings from \code{\link[=sequnit_options]{sequnit_options()}}. Later
+calls use the design stored in the log's header. If the log was created
+with different settings from the current ones, it is deleted and a new
+chart is started with the current settings, with a warning.
 
-If the option \code{cusum.fail_on_signal} is \code{FALSE}, a signal is reported as
+The log file is kept in the folder of the current \code{\link[=cusum_group]{cusum_group()}}, or else
+the option \code{sequnit.dir}, or else the working directory. Designs are cached
+in \verb{designs/} inside \code{sequnit.dir}, so that all charts share one cache.
+
+If the option \code{sequnit.fail_on_signal} is \code{FALSE}, a signal is reported as
 a warning and the test passes. The signal is recorded in the log
 either way.
 }
 \examples{
 set.seed(1)
-old <- options(cusum.dir = tempfile())
+old <- c(options(sequnit.dir = tempfile()),
+         sequnit_options(U0 = 100, n_bins = 31, n_scan = 4))
 for (i in 1:3)
-  expect_pval(function() runif(1), name = "example", U0 = 100,
-              n_bins = 31, n_scan = 4, cores = 1, quiet = TRUE)
+  expect_pval(function() runif(1), name = "example")
 options(old)
 }
 \seealso{
-\code{\link[=cusum_design]{cusum_design()}} for the design, \code{\link[=read_pval_log]{read_pval_log()}} and
-\code{\link[=plot_pval_log]{plot_pval_log()}} for the log, \code{\link[=workflow_gen]{workflow_gen()}} to run the tests on
-GitHub Actions.
+\code{\link[=sequnit_options]{sequnit_options()}} for the design settings, \code{\link[=cusum_design]{cusum_design()}} for
+the design, \code{\link[=read_pval_log]{read_pval_log()}} and \code{\link[=plot.cusum_log]{plot.cusum_log()}} for the log,
+\code{\link[=workflow_gen]{workflow_gen()}} to run the tests on GitHub Actions.
 }

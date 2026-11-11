@@ -17,8 +17,8 @@ The package also provides a ready-made GitHub Actions pipeline:
 \code{\link[=workflow_gen]{workflow_gen()}} writes a workflow that runs the tests of a repository or
 package on pushes, on a schedule or by hand. It keeps the logs between runs
 on a branch of the repository or as a workflow artifact depending on permissions.
-Plotting functions \code{\link[=plot_pval_log]{plot_pval_log()}} and \code{\link[=plot_pval_steps]{plot_pval_steps()}} are available
-for visualising the logs.
+Logs read with \code{\link[=read_pval_log]{read_pval_log()}} can be printed and plotted, see
+\code{\link[=plot.cusum_log]{plot.cusum_log()}}.
 }
 \section{The chart}{
 
@@ -33,13 +33,15 @@ chart is designed by \code{\link[=cusum_design]{cusum_design()}}.
 \section{Options}{
 
 \describe{
-\item{\code{cusum.dir}}{Folder holding the logs and the \verb{designs/} cache.
+\item{\code{sequnit.dir}}{Folder holding the logs and the \verb{designs/} cache.
 Defaults to the working directory.}
-\item{\code{cusum.fail_on_signal}}{If \code{TRUE} (the default), a signal fails the
-test. If \code{FALSE}, it is reported as a test warning instead.}
-\item{\code{cusum.group}}{Set by \code{\link[=cusum_group]{cusum_group()}} while its code runs; not
+\item{\code{sequnit.fail_on_signal}}{If \code{TRUE} (the default), a signal fails
+the test. If \code{FALSE}, it is reported as a test warning instead.}
+\item{\code{sequnit.group}}{Set by \code{\link[=cusum_group]{cusum_group()}} while its code runs; not
 meant to be set by hand.}
 }
+The design settings of new charts are options too, set with
+\code{\link[=sequnit_options]{sequnit_options()}}.
 }
 
 \section{Log format}{

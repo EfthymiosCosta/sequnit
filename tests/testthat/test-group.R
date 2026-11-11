@@ -12,12 +12,12 @@ test_that("cusum_group redirects every call, including from helper functions", {
   expect_true(file.exists(file.path(dir, "my_group", "inner.jsonl")))
   expect_true(file.exists(file.path(dir, "my_group", "sub", "inner.jsonl")))
   expect_false(file.exists(file.path(dir, "inner.jsonl")))
-  expect_null(getOption("cusum.group"))
+  expect_null(getOption("sequnit.group"))
 })
 
 # If the code inside a group fails, the group is still closed.
 test_that("the group is reset after an error", {
   local_cusum()
   expect_error(cusum_group("g", stop("boom")), "boom")
-  expect_null(getOption("cusum.group"))
+  expect_null(getOption("sequnit.group"))
 })

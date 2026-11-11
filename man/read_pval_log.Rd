@@ -10,9 +10,11 @@ read_pval_log(file_path)
 \item{file_path}{Path to the log file.}
 }
 \value{
-A list with \code{header}, the chart's design as a list, and \code{data}, a
-data frame with one row per commit and columns \code{signal}, \code{t}, \code{S} and
-\code{steps}. See \link{sequnit-package} for the meaning of each field.
+An object of class \code{cusum_log}: a list with \code{header}, the chart's
+design as a list, and \code{data}, a data frame with one row per commit and
+columns \code{signal}, \code{t}, \code{S} and \code{steps}. See \link{sequnit-package} for the
+meaning of each field. It has \link[=print.cusum_log]{print()} and
+\link[=plot.cusum_log]{plot()} methods.
 }
 \description{
 Reads a log written by \code{\link[=expect_pval]{expect_pval()}}.
@@ -20,9 +22,9 @@ Reads a log written by \code{\link[=expect_pval]{expect_pval()}}.
 \examples{
 set.seed(1)
 dir <- tempfile()
-old <- options(cusum.dir = dir)
-expect_pval(function() runif(1), name = "example", U0 = 100, n_bins = 31,
-            n_scan = 4, cores = 1, quiet = TRUE)
+old <- c(options(sequnit.dir = dir),
+         sequnit_options(U0 = 100, n_bins = 31, n_scan = 4))
+expect_pval(function() runif(1), name = "example")
 read_pval_log(file.path(dir, "example.jsonl"))
 options(old)
 }

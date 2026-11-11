@@ -23,11 +23,11 @@ subfolders. The design cache stays shared.
 }
 \examples{
 set.seed(1)
-old <- options(cusum.dir = tempfile())
+old <- c(options(sequnit.dir = tempfile()),
+         sequnit_options(U0 = 100, n_bins = 31, n_scan = 4))
 cusum_group("uniform checks", {
-  expect_pval(function() runif(1), name = "first", U0 = 100, n_bins = 31,
-              n_scan = 4, cores = 1, quiet = TRUE)
+  expect_pval(function() runif(1), name = "first")
 })
-list.files(getOption("cusum.dir"), recursive = TRUE)
+list.files(getOption("sequnit.dir"), recursive = TRUE)
 options(old)
 }

@@ -1,7 +1,7 @@
 Package: sequnit
 Type: Package
 Title: Sequential Monitoring of Randomised Unit Tests
-Version: 1.0.1
+Version: 1.0.2
 Authors@R: c(
     person("Efthymios", "Costa", email = "efthymios.costa17@imperial.ac.uk",
            role = c("aut", "cre")),
@@ -13,9 +13,8 @@ Description: Monitors randomised unit tests across successive code changes
     when a defect is present, while ensuring a desired average number of user commits
     and a fixed computational budget when no code defects are present.
     The package designs the chart, records its state in JSON Lines logs,
-    offers functions for plotting the logs, and provides a
-    GitHub Actions workflow template for developers to use for sequential testing
-    of non-deterministic tests.
+    offers functions for plotting the logs, and provides a GitHub Actions workflow
+    template for developers to use for sequential testing of non-deterministic tests.
 License: GPL (>= 2)
 URL: https://github.com/EfthymiosCosta/sequnit
 BugReports: https://github.com/EfthymiosCosta/sequnit/issues
@@ -27,9 +26,9 @@ Imports:
     parallel,
     stats,
     testthat,
-    utils
+    utils,
+    withr
 Suggests:
-    withr,
     yaml
 Config/testthat/edition: 3
 Encoding: UTF-8

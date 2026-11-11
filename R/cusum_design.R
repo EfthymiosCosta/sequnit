@@ -55,22 +55,7 @@ cusum_design <- function(alpha = 0.05, power = 0.2, U0 = 1e5, cbar0max = 1.1,
                          amax = 10, p_leave = 0.01, n_bins = 151, n_scan = 30,
                          design_dir = NULL, cores = NULL, tol_h = 1e-3,
                          max_h_iter = 40, quiet = FALSE) {
-  if (!is.numeric(alpha) || length(alpha) != 1L || alpha <= 0 || alpha >= 1)
-    stop("`alpha` must be a single number in (0, 1).", call. = FALSE)
-  if (!is.numeric(power) || length(power) != 1L || power <= alpha || power >= 1)
-    stop("`power` must be a single number in (alpha, 1).", call. = FALSE)
-  if (!is.numeric(U0) || length(U0) != 1L || U0 <= 1)
-    stop("`U0` must be a single number greater than 1.", call. = FALSE)
-  if (!is.numeric(cbar0max) || length(cbar0max) != 1L || cbar0max <= 1)
-    stop("`cbar0max` must be a single number greater than 1.", call. = FALSE)
-  if (!is.numeric(amax) || length(amax) != 1L || amax < 2 || amax %% 1 != 0)
-    stop("`amax` must be a single integer of at least 2.", call. = FALSE)
-  if (!is.numeric(p_leave) || length(p_leave) != 1L || p_leave <= 0 || p_leave >= 1)
-    stop("`p_leave` must be a single number in (0, 1).", call. = FALSE)
-  if (!is.numeric(n_bins) || length(n_bins) != 1L || n_bins < 3 || n_bins %% 1 != 0)
-    stop("`n_bins` must be a single integer of at least 3.", call. = FALSE)
-  if (!is.numeric(n_scan) || length(n_scan) != 1L || n_scan < 2 || n_scan %% 1 != 0)
-    stop("`n_scan` must be a single integer of at least 2.", call. = FALSE)
+  .check_settings(alpha, power, U0, cbar0max, amax, p_leave, n_bins, n_scan)
   if (!is.null(design_dir) && (!is.character(design_dir) || length(design_dir) != 1L || !nzchar(design_dir)))
     stop("`design_dir` must be `NULL` or a single folder name.", call. = FALSE)
   if (!is.null(cores) && (!is.numeric(cores) || length(cores) != 1L || cores < 1 || cores %% 1 != 0))
@@ -83,8 +68,11 @@ cusum_design <- function(alpha = 0.05, power = 0.2, U0 = 1e5, cbar0max = 1.1,
       return(jsonlite::read_json(path, simplifyVector = TRUE))
     if (!quiet) message("cusum_design(): no cached design, running the search.")
   }
-  if (is.null(cores))
+  if (is.null(cores)) {
     cores <- if (.Platform$OS.type == "windows") 1L else max(1L, parallel::detectCores(), na.rm = TRUE)
+    if (toupper(Sys.getenv("_R_CHECK_LIMIT_CORES_")) %in% c("TRUE", "WARN"))
+      cores <- min(cores, 2L)
+  }
   design <- .cusum_search(alpha, power, U0, cbar0max, amax, p_leave, n_bins, n_scan,
                           tol_h, max_h_iter, as.integer(cores))
   if (!is.null(design_dir)) {

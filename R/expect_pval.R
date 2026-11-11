@@ -78,16 +78,18 @@
 #'
 #' @param file_path Path to the log file.
 #'
-#' @return A list with `header`, the chart's design as a list, and `data`, a
-#'   data frame with one row per commit and columns `signal`, `t`, `S` and
-#'   `steps`. See [sequnit-package] for the meaning of each field.
+#' @return An object of class `cusum_log`: a list with `header`, the chart's
+#'   design as a list, and `data`, a data frame with one row per commit and
+#'   columns `signal`, `t`, `S` and `steps`. See [sequnit-package] for the
+#'   meaning of each field. It has [print()][print.cusum_log()] and
+#'   [plot()][plot.cusum_log()] methods.
 #'
 #' @examples
 #' set.seed(1)
 #' dir <- tempfile()
-#' old <- options(cusum.dir = dir)
-#' expect_pval(function() runif(1), name = "example", U0 = 100, n_bins = 31,
-#'             n_scan = 4, cores = 1, quiet = TRUE)
+#' old <- c(options(sequnit.dir = dir),
+#'          sequnit_options(U0 = 100, n_bins = 31, n_scan = 4))
+#' expect_pval(function() runif(1), name = "example")
 #' read_pval_log(file.path(dir, "example.jsonl"))
 #' options(old)
 #' @export
@@ -98,7 +100,7 @@ read_pval_log <- function(file_path) {
   entries <- lapply(lines[-1], jsonlite::fromJSON)
   data <- if (length(entries)) do.call(rbind, lapply(entries, as.data.frame)) else
     data.frame(signal = integer(0), t = character(0), S = numeric(0), steps = integer(0))
-  list(header = header, data = data)
+  structure(list(header = header, data = data), class = "cusum_log")
 }
 
 #' Draw one p-value
@@ -111,7 +113,7 @@ read_pval_log <- function(file_path) {
 .draw_pvalue <- function(fn) {
   p <- fn()
   if (!is.numeric(p) || length(p) != 1L || !is.finite(p) || p < 0 || p > 1)
-    stop("`p_value()` must return a single number in [0, 1].", call. = FALSE)
+    stop("`pval_fun()` must return a single number in [0, 1].", call. = FALSE)
   p
 }
 
@@ -124,13 +126,7 @@ read_pval_log <- function(file_path) {
 #'
 #' @param pval_fun A function with no arguments that runs the test
 #'   once and returns its p-value.
-#' @param name Name of the chart. Its log file is `<name>.jsonl` in `dir`.
-#' @param dir Folder of the log. Defaults to the folder of the current
-#'   [cusum_group()], or else the option `cusum.dir`, or else the working
-#'   directory.
-#' @param design_dir Folder of cached designs. Defaults to `designs/` inside
-#'   the option `cusum.dir`, so that all charts share one cache.
-#' @inheritParams cusum_design
+#' @param name Name of the chart. Its log file is `<name>.jsonl`.
 #'
 #' @return Invisibly, a list describing the commit: `name`, `file`,
 #'   `timestamp`, `S_prev`, `S`, `steps`, `signal`, `crossed` (whether this
@@ -141,55 +137,61 @@ read_pval_log <- function(file_path) {
 #'   decimals at the end of each commit, and the next commit continues from
 #'   that value.
 #'
-#'   The settings `alpha`, `power`, `U0`, `cbar0max`, `amax`, `p_leave`,
-#'   `n_bins` and `n_scan` are only used when the log is created. Later calls
-#'   use the design stored in the log's header.
+#'   A new chart is designed with the settings from [sequnit_options()]. Later
+#'   calls use the design stored in the log's header. If the log was created
+#'   with different settings from the current ones, it is deleted and a new
+#'   chart is started with the current settings, with a warning.
 #'
-#'   If the option `cusum.fail_on_signal` is `FALSE`, a signal is reported as
+#'   The log file is kept in the folder of the current [cusum_group()], or else
+#'   the option `sequnit.dir`, or else the working directory. Designs are cached
+#'   in `designs/` inside `sequnit.dir`, so that all charts share one cache.
+#'
+#'   If the option `sequnit.fail_on_signal` is `FALSE`, a signal is reported as
 #'   a warning and the test passes. The signal is recorded in the log
 #'   either way.
 #'
-#' @seealso [cusum_design()] for the design, [read_pval_log()] and
-#'   [plot_pval_log()] for the log, [workflow_gen()] to run the tests on
-#'   GitHub Actions.
+#' @seealso [sequnit_options()] for the design settings, [cusum_design()] for
+#'   the design, [read_pval_log()] and [plot.cusum_log()] for the log,
+#'   [workflow_gen()] to run the tests on GitHub Actions.
 #'
 #' @examples
 #' set.seed(1)
-#' old <- options(cusum.dir = tempfile())
+#' old <- c(options(sequnit.dir = tempfile()),
+#'          sequnit_options(U0 = 100, n_bins = 31, n_scan = 4))
 #' for (i in 1:3)
-#'   expect_pval(function() runif(1), name = "example", U0 = 100,
-#'               n_bins = 31, n_scan = 4, cores = 1, quiet = TRUE)
+#'   expect_pval(function() runif(1), name = "example")
 #' options(old)
 #' @export
-expect_pval <- function(pval_fun,
-                        name,
-                        dir = getOption("cusum.group", getOption("cusum.dir", ".")),
-                        alpha = 0.05,
-                        power = 0.2,
-                        U0 = 1e5,
-                        cbar0max = 1.1,
-                        amax = 10,
-                        p_leave = 0.01,
-                        n_bins = 151,
-                        n_scan = 30,
-                        cores = NULL,
-                        design_dir = file.path(getOption("cusum.dir", "."), "designs"),
-                        quiet = FALSE) {
+expect_pval <- function(pval_fun, name) {
   if (!is.function(pval_fun))
     stop("`pval_fun` must be a function that returns a single p-value.", call. = FALSE)
   if (!is.character(name) || length(name) != 1L || !nzchar(name))
     stop("`name` must be a single non-empty string.", call. = FALSE)
+  dir <- getOption("sequnit.group", getOption("sequnit.dir", "."))
   file_name <- if (grepl("\\.jsonl$", name, ignore.case = TRUE)) name else paste0(name, ".jsonl")
   file_path <- file.path(dir, file_name)
   if (!dir.exists(dir)) {
     dir.create(dir, recursive = TRUE, showWarnings = FALSE)
-    if (!quiet) message("expect_pval(): created directory '", dir, "'.")
+    message("expect_pval(): created directory '", dir, "'.")
   }
   new_log <- !file.exists(file_path)
+  if (!new_log) {
+    header <- .read_pval_header(file_path)
+    settings <- sequnit_options()
+    keys <- intersect(c("alpha", "power", "U0", "cbar0max", "amax", "p_leave", "n_bins"), names(header))
+    changed <- keys[!vapply(keys, function(k) isTRUE(all.equal(header[[k]], settings[[k]])), logical(1))]
+    if (length(changed)) {
+      warning(sprintf("CUSUM chart '%s' was created with different settings (%s). Its log is replaced by a new chart with the current settings.",
+                      name, paste(sprintf("%s = %s, now %s", changed, vapply(header[changed], format, ""),
+                                          vapply(settings[changed], format, "")), collapse = "; ")),
+              call. = FALSE)
+      file.remove(file_path)
+      new_log <- TRUE
+    }
+  }
   if (new_log) {
-    d <- cusum_design(alpha = alpha, power = power, U0 = U0, cbar0max = cbar0max,
-                      amax = amax, p_leave = p_leave, n_bins = n_bins, n_scan = n_scan,
-                      design_dir = design_dir, cores = cores, quiet = quiet)
+    design_dir <- file.path(getOption("sequnit.dir", "."), "designs")
+    d <- do.call(cusum_design, c(sequnit_options(), list(design_dir = design_dir)))
     h <- .round_up(d$h, .log_digits)
     header <- list(name = name, created = format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
                    alpha = d$alpha, power = d$power, U0 = d$U0, cbar0max = d$cbar0max,
@@ -199,7 +201,6 @@ expect_pval <- function(pval_fun,
                    v = .round_up(d$v, .log_digits), u1 = round(d$u1, .log_digits))
     S_prev <- 0
   } else {
-    header <- .read_pval_header(file_path)
     last <- .read_pval_last(file_path)
     S_prev <- if (is.null(last)) 0 else last$S
   }
@@ -218,12 +219,14 @@ expect_pval <- function(pval_fun,
   timestamp <- format(Sys.time(), "%Y-%m-%d %H:%M:%S")
   entry <- list(signal = as.integer(signal), t = timestamp, S = S, steps = steps)
   .append_pval_log(file_path, if (new_log) list(header, entry) else list(entry))
-  if (new_log && !quiet) message("expect_pval(): created log '", file_path, "'.")
+  if (new_log) message("expect_pval(): created log '", file_path, "'.")
   failure_message <- sprintf(
     "CUSUM chart '%s' %s the signalling threshold: S = %.4f >= h = %.4f after %d computational step%s.",
-    name, if (crossed) "has crossed" else "remains above", S, header$h, steps,
+    name,
+    if (crossed) "has crossed" else "remains above",
+    S, header$h, steps,
     if (steps == 1L) "" else "s")
-  fail <- isTRUE(getOption("cusum.fail_on_signal", TRUE))
+  fail <- isTRUE(getOption("sequnit.fail_on_signal", TRUE))
   if (signal && !fail)
     warning(failure_message, call. = FALSE)
   testthat::expect(ok = !signal || !fail, failure_message = failure_message)
@@ -247,12 +250,12 @@ expect_pval <- function(pval_fun,
 #'
 #' @examples
 #' set.seed(1)
-#' old <- options(cusum.dir = tempfile())
+#' old <- c(options(sequnit.dir = tempfile()),
+#'          sequnit_options(U0 = 100, n_bins = 31, n_scan = 4))
 #' cusum_group("uniform checks", {
-#'   expect_pval(function() runif(1), name = "first", U0 = 100, n_bins = 31,
-#'               n_scan = 4, cores = 1, quiet = TRUE)
+#'   expect_pval(function() runif(1), name = "first")
 #' })
-#' list.files(getOption("cusum.dir"), recursive = TRUE)
+#' list.files(getOption("sequnit.dir"), recursive = TRUE)
 #' options(old)
 #' @export
 cusum_group <- function(description, code) {
@@ -262,9 +265,9 @@ cusum_group <- function(description, code) {
   group_name <- gsub("^_+|_+$", "", group_name)
   if (!nzchar(group_name))
     stop("`description` produced an empty group name.", call. = FALSE)
-  group_dir <- file.path(getOption("cusum.group", getOption("cusum.dir", ".")), group_name)
+  group_dir <- file.path(getOption("sequnit.group", getOption("sequnit.dir", ".")), group_name)
   dir.create(group_dir, recursive = TRUE, showWarnings = FALSE)
-  old <- options(cusum.group = group_dir)
+  old <- options(sequnit.group = group_dir)
   on.exit(options(old), add = TRUE)
   invisible(code)
 }

@@ -101,8 +101,8 @@ jobs:
           # pkgload::load_all()
           library(testthat)
           dir.create(Sys.getenv("CUSUM_DIR"), showWarnings = FALSE)
-          options(cusum.dir = normalizePath(Sys.getenv("CUSUM_DIR")),
-                  cusum.fail_on_signal = as.logical(Sys.getenv("CUSUM_FAIL_ON_SIGNAL")))
+          options(sequnit.dir = normalizePath(Sys.getenv("CUSUM_DIR")),
+                  sequnit.fail_on_signal = as.logical(Sys.getenv("CUSUM_FAIL_ON_SIGNAL")))
           # Change "tests" if the test files are elsewhere, for example "tests/testthat".
           testthat::test_dir("tests", stop_on_failure = TRUE)
 
@@ -215,8 +215,8 @@ jobs:
           # pkgload::load_all()
           library(testthat)
           dir.create(Sys.getenv("CUSUM_DIR"), showWarnings = FALSE)
-          options(cusum.dir = normalizePath(Sys.getenv("CUSUM_DIR")),
-                  cusum.fail_on_signal = as.logical(Sys.getenv("CUSUM_FAIL_ON_SIGNAL")))
+          options(sequnit.dir = normalizePath(Sys.getenv("CUSUM_DIR")),
+                  sequnit.fail_on_signal = as.logical(Sys.getenv("CUSUM_FAIL_ON_SIGNAL")))
           # Change "tests" if the test files are elsewhere, for example "tests/testthat".
           testthat::test_dir("tests", stop_on_failure = TRUE)
 

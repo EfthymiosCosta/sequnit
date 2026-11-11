@@ -10,8 +10,8 @@
 #' [workflow_gen()] writes a workflow that runs the tests of a repository or
 #' package on pushes, on a schedule or by hand. It keeps the logs between runs
 #' on a branch of the repository or as a workflow artifact depending on permissions.
-#' Plotting functions [plot_pval_log()] and [plot_pval_steps()] are available
-#' for visualising the logs.
+#' Logs read with [read_pval_log()] can be printed and plotted, see
+#' [plot.cusum_log()].
 #'
 #' @section The chart:
 #' Each p-value \eqn{p} adds the increment \eqn{\Phi^{-1}(1 - p) - \delta/2}
@@ -23,13 +23,15 @@
 #'
 #' @section Options:
 #' \describe{
-#'   \item{`cusum.dir`}{Folder holding the logs and the `designs/` cache.
+#'   \item{`sequnit.dir`}{Folder holding the logs and the `designs/` cache.
 #'     Defaults to the working directory.}
-#'   \item{`cusum.fail_on_signal`}{If `TRUE` (the default), a signal fails the
-#'     test. If `FALSE`, it is reported as a test warning instead.}
-#'   \item{`cusum.group`}{Set by [cusum_group()] while its code runs; not
+#'   \item{`sequnit.fail_on_signal`}{If `TRUE` (the default), a signal fails
+#'     the test. If `FALSE`, it is reported as a test warning instead.}
+#'   \item{`sequnit.group`}{Set by [cusum_group()] while its code runs; not
 #'     meant to be set by hand.}
 #' }
+#' The design settings of new charts are options too, set with
+#' [sequnit_options()].
 #'
 #' @section Log format:
 #' Each chart has one log file, `<name>.jsonl`, in JSON Lines format.

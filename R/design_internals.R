@@ -1,3 +1,30 @@
+#' Check the design settings
+#'
+#' Stops with an error naming the first invalid setting.
+#'
+#' @inheritParams cusum_design
+#' @return Invisibly, `TRUE`.
+#' @noRd
+.check_settings <- function(alpha, power, U0, cbar0max, amax, p_leave, n_bins, n_scan) {
+  if (!is.numeric(alpha) || length(alpha) != 1L || alpha <= 0 || alpha >= 1)
+    stop("`alpha` must be a single number in (0, 1).", call. = FALSE)
+  if (!is.numeric(power) || length(power) != 1L || power <= alpha || power >= 1)
+    stop("`power` must be a single number in (alpha, 1).", call. = FALSE)
+  if (!is.numeric(U0) || length(U0) != 1L || U0 <= 1)
+    stop("`U0` must be a single number greater than 1.", call. = FALSE)
+  if (!is.numeric(cbar0max) || length(cbar0max) != 1L || cbar0max <= 1)
+    stop("`cbar0max` must be a single number greater than 1.", call. = FALSE)
+  if (!is.numeric(amax) || length(amax) != 1L || amax < 2 || amax %% 1 != 0)
+    stop("`amax` must be a single integer of at least 2.", call. = FALSE)
+  if (!is.numeric(p_leave) || length(p_leave) != 1L || p_leave <= 0 || p_leave >= 1)
+    stop("`p_leave` must be a single number in (0, 1).", call. = FALSE)
+  if (!is.numeric(n_bins) || length(n_bins) != 1L || n_bins < 3 || n_bins %% 1 != 0)
+    stop("`n_bins` must be a single integer of at least 3.", call. = FALSE)
+  if (!is.numeric(n_scan) || length(n_scan) != 1L || n_scan < 2 || n_scan %% 1 != 0)
+    stop("`n_scan` must be a single integer of at least 2.", call. = FALSE)
+  invisible(TRUE)
+}
+
 #' Shift parameter of the chart
 #'
 #' Mean of qnorm(1 - p) under which a one-sided level-`alpha` z-test has power
