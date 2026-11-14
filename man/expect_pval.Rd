@@ -29,10 +29,11 @@ chart is at or above \code{v}. The statistic \code{S} is rounded to four
 decimals at the end of each commit, and the next commit continues from
 that value.
 
-A new chart is designed with the settings from \code{\link[=sequnit_options]{sequnit_options()}}. Later
-calls use the design stored in the log's header. If the log was created
-with different settings from the current ones, it is deleted and a new
-chart is started with the current settings, with a warning.
+A new chart is designed with the settings in the options \code{sequnit.alpha},
+\code{sequnit.power}, \code{sequnit.U0}, \code{sequnit.cbar0max}, \code{sequnit.amax},
+\code{sequnit.p_leave}, \code{sequnit.n_bins} and \code{sequnit.n_scan}, set with
+\code{\link[=options]{options()}} and reset to their defaults with \code{\link[=sequnit_reset]{sequnit_reset()}}. Later
+calls use the design stored in the log's header.
 
 The log file is kept in the folder of the current \code{\link[=cusum_group]{cusum_group()}}, or else
 the option \code{sequnit.dir}, or else the working directory. Designs are cached
@@ -44,14 +45,15 @@ either way.
 }
 \examples{
 set.seed(1)
-old <- c(options(sequnit.dir = tempfile()),
-         sequnit_options(U0 = 100, n_bins = 31, n_scan = 4))
+old <- options(sequnit.dir = tempfile())
+options(sequnit.U0 = 100, sequnit.n_bins = 31, sequnit.n_scan = 4)
 for (i in 1:3)
   expect_pval(function() runif(1), name = "example")
+sequnit_reset()
 options(old)
 }
 \seealso{
-\code{\link[=sequnit_options]{sequnit_options()}} for the design settings, \code{\link[=cusum_design]{cusum_design()}} for
+\code{\link[=sequnit_reset]{sequnit_reset()}} for the design settings, \code{\link[=cusum_design]{cusum_design()}} for
 the design, \code{\link[=read_cusum_log]{read_cusum_log()}} and \code{\link[=plot.cusum_log]{plot.cusum_log()}} for the log,
 \code{\link[=workflow_gen]{workflow_gen()}} to run the tests on GitHub Actions.
 }

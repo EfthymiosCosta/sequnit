@@ -15,15 +15,38 @@ test_that("the plots run on a log", {
   expect_error(plot(log, M = 0), "positive integer")
 })
 
-# Printing a log shows its name, and the current state of the chart.
-test_that("a log prints a summary", {
+# Printing a log shows its last n user commits, or all of them with n = Inf.
+test_that("a log prints its last commits", {
+  dir <- local_cusum()
+  f <- file.path(dir, "r.jsonl")
+  for (i in 1:12)
+    expect_pval_small(function() 0.5, name = "r")
+  log <- read_cusum_log(f)
+  expect_output(print(log), "Log of CUSUM chart: r")
+  expect_output(print(log), "Last 10 of 12 user commits")
+  expect_output(print(log, n = 3), "Last 3 of 12 user commits")
+  expect_output(print(log, n = Inf), "All 12 user commits")
+  expect_equal(length(capture.output(print(log, n = 3))), 2 + 1 + 3)
+  expect_error(print(log, n = 0), "positive number")
+})
+
+# The summary gives the chart's state, and its print method shows it.
+test_that("a log has a summary", {
   dir <- local_cusum()
   f <- file.path(dir, "q.jsonl")
   expect_pval_small(function() 0.5, name = "q")
-  expect_output(print(read_cusum_log(f)), "Log of CUSUM chart: q")
-  expect_output(print(read_cusum_log(f)), "Signals:    none")
+  s <- summary(read_cusum_log(f))
+  expect_s3_class(s, "summary.cusum_log")
+  expect_equal(s$n_commits, 1)
+  expect_false(s$signalling)
+  expect_output(print(s), "Summary of CUSUM chart: q")
+  expect_output(print(s), "Signals:    none")
   withr::local_options(sequnit.fail_on_signal = FALSE)
   suppressWarnings(expect_pval_small(function() 0, name = "q"))
-  expect_output(print(read_cusum_log(f)), "signalling since commit 2")
-  expect_output(print(read_cusum_log(f)), "1 commit, first at commit 2")
+  s <- summary(read_cusum_log(f))
+  expect_true(s$signalling)
+  expect_equal(s$signalling_since, 2)
+  expect_equal(s$first_signal, 2)
+  expect_output(print(s), "signalling since commit 2")
+  expect_output(print(s), "1 commit, first at commit 2")
 })

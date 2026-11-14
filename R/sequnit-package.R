@@ -30,8 +30,11 @@
 #'   \item{`sequnit.group`}{Set by [cusum_group()] while its code runs; not
 #'     meant to be set by hand.}
 #' }
-#' The design settings of new charts are options too, set with
-#' [sequnit_options()].
+#' The design settings of new charts are the options `sequnit.alpha`,
+#' `sequnit.power`, `sequnit.U0`, `sequnit.cbar0max`, `sequnit.amax`,
+#' `sequnit.p_leave`, `sequnit.n_bins` and `sequnit.n_scan`. They are set to
+#' their defaults when the package is loaded, and [sequnit_reset()] sets them
+#' back. Use `options` to change them.
 #'
 #' @section Log format:
 #' Each chart has one log file, `<name>.jsonl`, in JSON Lines format.

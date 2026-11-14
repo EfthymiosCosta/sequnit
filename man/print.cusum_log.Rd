@@ -2,12 +2,14 @@
 % Please edit documentation in R/cusum_log.R
 \name{print.cusum_log}
 \alias{print.cusum_log}
-\title{Print a CUSUM log}
+\title{Print the log of a CUSUM chart}
 \usage{
-\method{print}{cusum_log}(x, ...)
+\method{print}{cusum_log}(x, n = 10, ...)
 }
 \arguments{
 \item{x}{A log read by \code{\link[=read_cusum_log]{read_cusum_log()}}.}
+
+\item{n}{Number of most recent user commits to show. Use \code{Inf} to show all.}
 
 \item{...}{Further arguments passed to or from other methods.}
 }
@@ -15,16 +17,21 @@
 Invisibly, \code{x}.
 }
 \description{
-Shows the chart's name, settings and thresholds, the number of commits and
-test runs, the current CUSUM statistic and the signals so far.
+Shows the chart's name and thresholds, and its last \code{n} user commits.
 }
 \examples{
 set.seed(1)
 dir <- tempfile()
-old <- c(options(sequnit.dir = dir),
-         sequnit_options(U0 = 100, n_bins = 31, n_scan = 4))
-for (i in 1:5)
+old <- options(sequnit.dir = dir)
+options(sequnit.U0 = 100, sequnit.n_bins = 31, sequnit.n_scan = 4)
+for (i in 1:15)
   expect_pval(function() runif(1), name = "example")
-read_cusum_log(file.path(dir, "example.jsonl"))
+log <- read_cusum_log(file.path(dir, "example.jsonl"))
+log
+print(log, n = Inf)
+sequnit_reset()
 options(old)
+}
+\seealso{
+\code{\link[=summary.cusum_log]{summary.cusum_log()}} for an overview of the chart.
 }

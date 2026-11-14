@@ -40,8 +40,11 @@ the test. If \code{FALSE}, it is reported as a test warning instead.}
 \item{\code{sequnit.group}}{Set by \code{\link[=cusum_group]{cusum_group()}} while its code runs; not
 meant to be set by hand.}
 }
-The design settings of new charts are options too, set with
-\code{\link[=sequnit_options]{sequnit_options()}}.
+The design settings of new charts are the options \code{sequnit.alpha},
+\code{sequnit.power}, \code{sequnit.U0}, \code{sequnit.cbar0max}, \code{sequnit.amax},
+\code{sequnit.p_leave}, \code{sequnit.n_bins} and \code{sequnit.n_scan}. They are set to
+their defaults when the package is loaded, and \code{\link[=sequnit_reset]{sequnit_reset()}} sets them
+back. Use \code{options} to change them.
 }
 
 \section{Log format}{

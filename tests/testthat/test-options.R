@@ -1,41 +1,28 @@
-# With no settings, sequnit_options() returns all the current settings.
-test_that("sequnit_options returns the current settings", {
-  expect_named(sequnit_options(), c("alpha", "power", "U0", "cbar0max", "amax",
-                                    "p_leave", "n_bins", "n_scan"))
+# Loading the package sets every design option to its default.
+test_that("the design options have defaults", {
+  settings <- .sequnit_settings()
+  expect_named(settings, c("alpha", "power", "U0", "cbar0max", "amax", "p_leave",
+                           "n_bins", "n_scan"))
+  expect_equal(unname(settings), unname(.sequnit_defaults))
 })
 
-# Only the settings passed change, and the returned values restore them.
-test_that("only the settings passed change", {
-  withr::local_options(sequnit.U0 = NULL)
-  before <- sequnit_options()
-  old <- sequnit_options(U0 = 1e6)
-  after <- sequnit_options()
-  expect_equal(after$U0, 1e6)
-  expect_equal(after[names(after) != "U0"], before[names(before) != "U0"])
-  options(old)
-  expect_equal(sequnit_options(), before)
+# sequnit_reset() sets every design option back to its default, and returns the
+# previous values.
+test_that("sequnit_reset restores the defaults", {
+  withr::local_options(sequnit.U0 = 1e6, sequnit.power = 0.1)
+  old <- sequnit_reset()
+  expect_equal(old$sequnit.U0, 1e6)
+  expect_equal(getOption("sequnit.U0"), .sequnit_defaults$sequnit.U0)
+  expect_equal(getOption("sequnit.power"), .sequnit_defaults$sequnit.power)
 })
 
-# With local = TRUE, the settings return to their previous values when the
-# calling function ends.
-test_that("local settings are restored", {
-  withr::local_options(sequnit.U0 = NULL)
-  before <- sequnit_options()$U0
-  f <- function() {
-    sequnit_options(U0 = 1e6, local = TRUE)
-    sequnit_options()$U0
-  }
-  expect_equal(f(), 1e6)
-  expect_equal(sequnit_options()$U0, before)
-})
-
-# Invalid settings stop with an error and change nothing. A setting is also
-# checked against the current values of the others.
-test_that("invalid settings are rejected", {
-  withr::local_options(sequnit.alpha = NULL, sequnit.power = NULL)
-  expect_error(sequnit_options(alpha = 2), "alpha")
-  expect_error(sequnit_options(alpha = 0.5), "power")
-  expect_null(getOption("sequnit.alpha"))
+# An invalid setting stops expect_pval() before it touches an existing log.
+test_that("invalid settings are rejected before any log is changed", {
+  dir <- local_cusum()
+  expect_pval_small(function() 0.5, name = "o")
+  withr::local_options(sequnit.alpha = 2)
+  expect_error(expect_pval_small(function() 0.5, name = "o"), "alpha")
+  expect_true(file.exists(file.path(dir, "o.jsonl")))
 })
 
 # A chart is designed with the current settings. If the settings change, the
