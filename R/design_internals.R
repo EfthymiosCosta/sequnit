@@ -209,7 +209,7 @@
 #' Computes, for thresholds `h` and `v`, the average number of commits until a
 #' signal starting from 0, without (`u0`) and with (`u1`) a defect, and the
 #' average number of test runs per commit without a defect (`cbar0`), using
-#' the stationary distribution of the chart.
+#' the stationary distribution of the CUSUM statistic.
 #'
 #' @param v Acceleration threshold.
 #' @param h Signalling threshold.

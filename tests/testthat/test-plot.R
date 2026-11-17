@@ -8,11 +8,14 @@ test_that("the plots run on a log", {
   expect_s3_class(log, "cusum_log")
   grDevices::pdf(NULL)
   withr::defer(grDevices::dev.off())
-  r <- plot(log, M = 5)
+  expect_null(plot(log)$regions)
+  r <- plot(log, show_probs = TRUE, M = 5)
   expect_equal(nrow(r$regions), 5)
   expect_equal(sum(r$regions$prob), 1, tolerance = 1e-8)
   expect_no_error(plot(log, type = "steps"))
-  expect_error(plot(log, M = 0), "positive integer")
+  expect_error(plot(log, show_probs = TRUE, M = 0), "positive integer")
+  expect_error(plot(log, show_acc = NA), "TRUE or FALSE")
+  expect_no_error(plot(log, show_acc = TRUE))
 })
 
 # Printing a log shows its last n user commits, or all of them with n = Inf.

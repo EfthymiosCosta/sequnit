@@ -1,8 +1,8 @@
 #' Stationary probabilities of equal-width regions
 #'
 #' Splits \eqn{[0, H]} into `M` equal-width regions and gives the probability
-#' of each under the chart's stationary distribution when the code has no
-#' defect, computed using a Markov chain approximation.
+#' of each under the stationary distribution of the CUSUM statistic when the
+#' code has no bug, computed using a Markov chain approximation.
 #'
 #' @param header Header of a log.
 #' @param M Number of regions.
@@ -30,10 +30,12 @@
 #' smaller ones in scientific notation, and exact zeros as 0.
 #'
 #' @param p Probabilities.
-#' @return Labels such as "p = 12.3%".
+#' @return Plot labels such as `pi_0 = 12.3%`, with `pi_0` written as a Greek
+#'   letter.
 #' @noRd
 .format_prob <- function(p) {
-  ifelse(p == 0, "p = 0", ifelse(p >= 0.001, sprintf("p = %.1f%%", 100 * p), sprintf("p = %.1e", p)))
+  lab <- ifelse(p == 0, "0", ifelse(p >= 0.001, sprintf("%.1f%%", 100 * p), sprintf("%.1e", p)))
+  as.expression(lapply(lab, function(l) bquote(pi[0] == .(l))))
 }
 
 #' Prepare a log for plotting
@@ -69,7 +71,7 @@
 #' Puts the thresholds, in increasing order, into groups whose neighbouring
 #' values are closer than `min_gap`, so that each group gets one label.
 #'
-#' @param y Named thresholds in increasing order, such as `c(v = , h = , H = )`.
+#' @param y Named thresholds in increasing order, such as `c(h = , H = )`.
 #' @param min_gap Smallest vertical distance between two separate labels.
 #' @return A list of named numeric vectors, one per group.
 #' @noRd
@@ -81,10 +83,9 @@
 #'
 #' Plots a log read by [read_cusum_log()].
 #'
-#' With `type = "chart"`, it plots the CUSUM statistic, one point per commit,
-#' against coloured bands from green at 0 to red at `H`. Dashed lines mark `h`
-#' and `H`, and a dotted line marks `v`. The right axis shows the acceleration:
-#' one test run per commit below `v`, and up to `amax` above it.
+#' With `type = "chart"`, it plots the CUSUM statistic, one point per commit.
+#' Dashed lines mark `h` and `H`, and the area between them, where the chart
+#' signals, is shaded red.
 #'
 #' With `type = "steps"`, it plots the number of tests run in each commit
 #' (equivalently, the number of p-values drawn). A dashed line marks the
@@ -93,9 +94,14 @@
 #' @param x A log read by [read_cusum_log()].
 #' @param type `"chart"` for the CUSUM chart, or `"steps"` for the number of
 #'   tests run per commit.
-#' @param M Number of equal-width regions of \eqn{[0, H]}. Each region is
-#'   labelled with its probability under the chart's stationary distribution
-#'   when the code has no defect. Only used with `type = "chart"`.
+#' @param show_probs If `TRUE`, splits \eqn{[0, H]} into `M` equal-width
+#'   regions and labels each with \eqn{\pi_0}, its probability under the
+#'   stationary distribution of the CUSUM statistic when the code has no bug.
+#'   Only used with `type = "chart"`.
+#' @param M Number of regions when `show_probs = TRUE`.
+#' @param show_acc If `TRUE`, adds a right axis showing the acceleration: one
+#'   test run per commit below `v`, and up to `amax` above it. Only used with
+#'   `type = "chart"`.
 #' @param main Title of the plot. Defaults to the chart's name.
 #' @param time_format Format of the commit times shown on the x-axis, as in
 #'   [format.POSIXct()]. Defaults to date and time on two lines, with seconds
@@ -109,8 +115,9 @@
 #' @param ... Further graphical arguments passed to [plot()], e.g.
 #'   `cex.main` or `ylab`.
 #'
-#' @return Invisibly, `x`. With `type = "chart"`, it also contains `regions`,
-#'   a data frame with the bounds and stationary probability of each region.
+#' @return Invisibly, `x`. With `show_probs = TRUE`, it also contains
+#'   `regions`, a data frame with the bounds and stationary probability of each
+#'   region.
 #'
 #' @examples
 #' set.seed(1)
@@ -121,14 +128,16 @@
 #'   expect_pval(function() runif(1), name = "example")
 #' log <- read_cusum_log(file.path(dir, "example.jsonl"))
 #' plot(log)
+#' abline(h = log$header$v, lty = 3)
+#' plot(log, show_probs = TRUE, show_acc = TRUE)
 #' plot(log, type = "steps")
 #' plot(log, line_args = list(col = "navy"), point_args = list(col = "red"))
 #' sequnit_reset()
 #' options(old)
 #' @export
-plot.cusum_log <- function(x, type = c("chart", "steps"), M = 10, main = NULL,
-                           time_format = NULL, n_ticks = 6, line_args = list(),
-                           point_args = list(), ...) {
+plot.cusum_log <- function(x, type = c("chart", "steps"), show_probs = FALSE, M = 10,
+                           show_acc = FALSE, main = NULL, time_format = NULL,
+                           n_ticks = 6, line_args = list(), point_args = list(), ...) {
   type <- match.arg(type)
   if (!is.list(line_args) || !is.list(point_args))
     stop("`line_args` and `point_args` must be lists.", call. = FALSE)
@@ -152,14 +161,14 @@ plot.cusum_log <- function(x, type = c("chart", "steps"), M = 10, main = NULL,
     title(xlab = "commit", line = 4)
     return(invisible(x))
   }
-  if (!is.numeric(M) || length(M) != 1L || M < 1 || M %% 1 != 0)
+  if (!is.logical(show_probs) || length(show_probs) != 1L || is.na(show_probs) ||
+      !is.logical(show_acc) || length(show_acc) != 1L || is.na(show_acc))
+    stop("`show_probs` and `show_acc` must be TRUE or FALSE.", call. = FALSE)
+  if (show_probs && (!is.numeric(M) || length(M) != 1L || M < 1 || M %% 1 != 0))
     stop("`M` must be a single positive integer.", call. = FALSE)
   pr <- .prep_plot_log(x, main, "CUSUM chart: ", time_format, n_ticks)
   hd <- pr$header
-  regions <- .stationary_regions(hd, as.integer(M))
-  band_breaks <- seq(0, hd$H, length.out = 101)
-  band_cols <- colorRampPalette(c("#66cc66", "#fffbc8", "#fc9272", "#de2d26"))(100)
-  op <- par(mar = c(5.5, 4.5, 3, 4.5))
+  op <- par(mar = c(5.5, 4.5, 3, if (show_acc) 4.5 else 1.5))
   on.exit(par(op))
   do.call(plot, utils::modifyList(list(x = NA, xlim = pr$xlim, ylim = c(0, hd$H), xaxs = "i",
                                        yaxs = "i", xaxt = "n", xlab = "",
@@ -167,15 +176,18 @@ plot.cusum_log <- function(x, type = c("chart", "steps"), M = 10, main = NULL,
                                        main = pr$main),
                                   list(...)))
   usr <- par("usr")
-  rect(usr[1], band_breaks[-101], usr[2], band_breaks[-1], col = band_cols, border = NA)
-  if (M > 1)
-    abline(h = regions$upper[-M], col = adjustcolor("black", alpha.f = 0.2))
-  text(usr[2], (regions$lower + regions$upper) / 2, .format_prob(regions$prob),
-       pos = 2, cex = 0.75, font = 2, col = adjustcolor("black", alpha.f = 0.6))
-  abline(h = hd$v, col = "grey30", lty = 3, lwd = 2)
+  rect(usr[1], hd$h, usr[2], hd$H, col = adjustcolor("#de2d26", alpha.f = 0.5), border = NA)
+  if (show_probs) {
+    regions <- .stationary_regions(hd, as.integer(M))
+    if (M > 1)
+      abline(h = regions$upper[-M], col = adjustcolor("black", alpha.f = 0.2))
+    text(usr[2], (regions$lower + regions$upper) / 2, .format_prob(regions$prob),
+         pos = 2, cex = 0.75, font = 2, col = adjustcolor("black", alpha.f = 0.6))
+    x$regions <- regions
+  }
   abline(h = c(hd$h, hd$H), col = "grey30", lty = 2, lwd = 2)
   x_lab <- usr[1] + 0.01 * (usr[2] - usr[1])
-  for (g in .group_labels(c(v = hd$v, h = hd$h, H = hd$H), 1.5 * strheight("h", cex = 0.85))) {
+  for (g in .group_labels(c(h = hd$h, H = hd$H), 1.5 * strheight("h", cex = 0.85))) {
     top <- "H" %in% names(g)
     text(x_lab, if (top) hd$H else max(g), paste(names(g), collapse = ", "),
          adj = c(0, if (top) 1.4 else -0.4), cex = 0.85, font = 2, col = "grey20")
@@ -185,10 +197,11 @@ plot.cusum_log <- function(x, type = c("chart", "steps"), M = 10, main = NULL,
                                     point_args))
   axis(1, at = pr$ticks, labels = pr$tick_labels, cex.axis = 0.8, padj = 0.5)
   title(xlab = "commit", line = 4)
-  axis(4, at = c(0, hd$v, hd$H), labels = FALSE)
-  axis(4, at = c(hd$v / 2, (hd$v + hd$H) / 2), labels = c(1, hd$amax), tick = FALSE, las = 1)
-  mtext("acceleration a(S)", side = 4, line = 2.5)
+  if (show_acc) {
+    axis(4, at = c(0, hd$v, hd$H), labels = FALSE)
+    axis(4, at = c(hd$v / 2, (hd$v + hd$H) / 2), labels = c(1, hd$amax), tick = FALSE, las = 1)
+    mtext("acceleration a(S)", side = 4, line = 2.5)
+  }
   box()
-  x$regions <- regions
   invisible(x)
 }

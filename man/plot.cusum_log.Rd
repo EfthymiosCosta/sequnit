@@ -7,7 +7,9 @@
 \method{plot}{cusum_log}(
   x,
   type = c("chart", "steps"),
+  show_probs = FALSE,
   M = 10,
+  show_acc = FALSE,
   main = NULL,
   time_format = NULL,
   n_ticks = 6,
@@ -22,9 +24,16 @@
 \item{type}{\code{"chart"} for the CUSUM chart, or \code{"steps"} for the number of
 tests run per commit.}
 
-\item{M}{Number of equal-width regions of \eqn{[0, H]}. Each region is
-labelled with its probability under the chart's stationary distribution
-when the code has no defect. Only used with \code{type = "chart"}.}
+\item{show_probs}{If \code{TRUE}, splits \eqn{[0, H]} into \code{M} equal-width
+regions and labels each with \eqn{\pi_0}, its probability under the
+stationary distribution of the CUSUM statistic when the code has no bug.
+Only used with \code{type = "chart"}.}
+
+\item{M}{Number of regions when \code{show_probs = TRUE}.}
+
+\item{show_acc}{If \code{TRUE}, adds a right axis showing the acceleration: one
+test run per commit below \code{v}, and up to \code{amax} above it. Only used with
+\code{type = "chart"}.}
 
 \item{main}{Title of the plot. Defaults to the chart's name.}
 
@@ -45,17 +54,17 @@ each commit, e.g. \code{list(col = "red", pch = 1)}.}
 \code{cex.main} or \code{ylab}.}
 }
 \value{
-Invisibly, \code{x}. With \code{type = "chart"}, it also contains \code{regions},
-a data frame with the bounds and stationary probability of each region.
+Invisibly, \code{x}. With \code{show_probs = TRUE}, it also contains
+\code{regions}, a data frame with the bounds and stationary probability of each
+region.
 }
 \description{
 Plots a log read by \code{\link[=read_cusum_log]{read_cusum_log()}}.
 }
 \details{
-With \code{type = "chart"}, it plots the CUSUM statistic, one point per commit,
-against coloured bands from green at 0 to red at \code{H}. Dashed lines mark \code{h}
-and \code{H}, and a dotted line marks \code{v}. The right axis shows the acceleration:
-one test run per commit below \code{v}, and up to \code{amax} above it.
+With \code{type = "chart"}, it plots the CUSUM statistic, one point per commit.
+Dashed lines mark \code{h} and \code{H}, and the area between them, where the chart
+signals, is shaded red.
 
 With \code{type = "steps"}, it plots the number of tests run in each commit
 (equivalently, the number of p-values drawn). A dashed line marks the
@@ -70,6 +79,8 @@ for (i in 1:20)
   expect_pval(function() runif(1), name = "example")
 log <- read_cusum_log(file.path(dir, "example.jsonl"))
 plot(log)
+abline(h = log$header$v, lty = 3)
+plot(log, show_probs = TRUE, show_acc = TRUE)
 plot(log, type = "steps")
 plot(log, line_args = list(col = "navy"), point_args = list(col = "red"))
 sequnit_reset()

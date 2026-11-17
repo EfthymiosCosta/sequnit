@@ -54,5 +54,5 @@
 #' @importFrom stats pnorm qnorm uniroot
 #' @importFrom utils head tail
 #' @importFrom graphics abline axis box lines mtext par points rect strheight text title
-#' @importFrom grDevices adjustcolor colorRampPalette
+#' @importFrom grDevices adjustcolor
 "_PACKAGE"
