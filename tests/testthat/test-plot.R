@@ -53,3 +53,18 @@ test_that("a log has a summary", {
   expect_output(print(s), "signalling since commit 2")
   expect_output(print(s), "1 commit, first at commit 2")
 })
+
+# Several logs plot together on either x-axis, but only if they share configuration
+test_that("several logs plot together only with the same settings", {
+  dir <- local_cusum()
+  for (i in 1:3)
+    expect_pval_small(function() 0.5, name = "p")
+  log <- read_cusum_log(file.path(dir, "p.jsonl"))
+  grDevices::pdf(NULL)
+  withr::defer(grDevices::dev.off())
+  expect_no_error(plot(log, log))
+  expect_no_error(plot(log, log, x_axis = "time", type = "steps"))
+  other <- log
+  other$header$U0 <- 2 * log$header$U0
+  expect_error(plot(log, other), "different settings")
+})

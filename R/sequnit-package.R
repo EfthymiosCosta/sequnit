@@ -51,8 +51,8 @@
 #' and `steps` is the number of tests run.
 #'
 #' @keywords internal
-#' @importFrom stats pnorm qnorm uniroot
+#' @importFrom stats ave pnorm qnorm uniroot
 #' @importFrom utils head tail
-#' @importFrom graphics abline axis box lines mtext par points rect strheight text title
-#' @importFrom grDevices adjustcolor
+#' @importFrom graphics abline axis box legend lines mtext par points rect text
+#' @importFrom grDevices adjustcolor palette.colors
 "_PACKAGE"

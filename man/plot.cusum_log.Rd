@@ -2,11 +2,13 @@
 % Please edit documentation in R/plot_cusum_log.R
 \name{plot.cusum_log}
 \alias{plot.cusum_log}
-\title{Plot a CUSUM log}
+\title{Plot CUSUM logs}
 \usage{
 \method{plot}{cusum_log}(
   x,
+  ...,
   type = c("chart", "steps"),
+  x_axis = c("commit", "time"),
   show_probs = FALSE,
   M = 10,
   show_acc = FALSE,
@@ -14,15 +16,20 @@
   time_format = NULL,
   n_ticks = 6,
   line_args = list(),
-  point_args = list(),
-  ...
+  point_args = list()
 )
 }
 \arguments{
 \item{x}{A log read by \code{\link[=read_cusum_log]{read_cusum_log()}}.}
 
+\item{...}{Further logs read by \code{\link[=read_cusum_log]{read_cusum_log()}}, plotted along with \code{x},
+and graphical arguments passed to \code{\link[=plot]{plot()}}, e.g. \code{cex.main}.}
+
 \item{type}{\code{"chart"} for the CUSUM chart, or \code{"steps"} for the number of
 tests run per commit.}
+
+\item{x_axis}{\code{"commit"} to space the commits equally, in time order, or
+\code{"time"} to space them by their times.}
 
 \item{show_probs}{If \code{TRUE}, splits \eqn{[0, H]} into \code{M} equal-width
 regions and labels each with \eqn{\pi_0}, its probability under the
@@ -35,23 +42,23 @@ Only used with \code{type = "chart"}.}
 test run per commit below \code{v}, and up to \code{amax} above it. Only used with
 \code{type = "chart"}.}
 
-\item{main}{Title of the plot. Defaults to the chart's name.}
+\item{main}{Title of the plot. Defaults to the log's name for a single log.}
 
-\item{time_format}{Format of the commit times shown on the x-axis, as in
+\item{time_format}{Format of the times shown on the x-axis, as in
 \code{\link[=format.POSIXct]{format.POSIXct()}}. Defaults to date and time on two lines, with seconds
-if the log spans less than an hour.}
+if the logs span less than an hour.}
 
-\item{n_ticks}{Maximum number of labelled commits on the x-axis.}
+\item{n_ticks}{Maximum number of ticks on the x-axis. With
+\code{x_axis = "time"}, this is only approximate.}
 
-\item{line_args}{List of arguments passed to \code{\link[=lines]{lines()}} for the line through
-the commits (\code{type = "chart"}) or the bars (\code{type = "steps"}), e.g.
-\code{list(col = "navy", lwd = 1)}.}
+\item{line_args}{List of arguments passed to \code{\link[=lines]{lines()}} for the line of each
+log (\code{type = "chart"}) or its bars (\code{type = "steps"}), e.g.
+\code{list(lwd = 1)}. Each argument is recycled over the logs, e.g.
+\code{list(col = c("navy", "orange"))}.}
 
-\item{point_args}{List of arguments passed to \code{\link[=points]{points()}} for the point of
-each commit, e.g. \code{list(col = "red", pch = 1)}.}
-
-\item{...}{Further graphical arguments passed to \code{\link[=plot]{plot()}}, e.g.
-\code{cex.main} or \code{ylab}.}
+\item{point_args}{List of arguments passed to \code{\link[=points]{points()}} for the points of
+each log, recycled as \code{line_args}. Points take the colour of their line
+unless \code{col} is given.}
 }
 \value{
 Invisibly, \code{x}. With \code{show_probs = TRUE}, it also contains
@@ -59,12 +66,13 @@ Invisibly, \code{x}. With \code{show_probs = TRUE}, it also contains
 region.
 }
 \description{
-Plots a log read by \code{\link[=read_cusum_log]{read_cusum_log()}}.
+Plots one or more logs read by \code{\link[=read_cusum_log]{read_cusum_log()}}, one colour per log from
+the Okabe-Ito palette, starting with black. Logs plotted together must have
+the same settings.
 }
 \details{
 With \code{type = "chart"}, it plots the CUSUM statistic, one point per commit.
-Dashed lines mark \code{h} and \code{H}, and the area between them, where the chart
-signals, is shaded red.
+The area between \code{h} and \code{H}, where the chart signals, is shaded red.
 
 With \code{type = "steps"}, it plots the number of tests run in each commit
 (equivalently, the number of p-values drawn). A dashed line marks the
@@ -75,14 +83,19 @@ set.seed(1)
 dir <- tempfile()
 old <- options(sequnit.dir = dir)
 options(sequnit.U0 = 100, sequnit.n_bins = 31, sequnit.n_scan = 4)
-for (i in 1:20)
-  expect_pval(function() runif(1), name = "example")
-log <- read_cusum_log(file.path(dir, "example.jsonl"))
-plot(log)
-abline(h = log$header$v, lty = 3)
-plot(log, show_probs = TRUE, show_acc = TRUE)
-plot(log, type = "steps")
-plot(log, line_args = list(col = "navy"), point_args = list(col = "red"))
+for (i in 1:20) {
+  expect_pval(function() runif(1), name = "first")
+  expect_pval(function() runif(1), name = "second")
+}
+log1 <- read_cusum_log(file.path(dir, "first.jsonl"))
+log2 <- read_cusum_log(file.path(dir, "second.jsonl"))
+plot(log1)
+abline(h = log1$header$v, lty = 3)
+plot(log1, log2)
+plot(log1, log2, x_axis = "time")
+plot(log1, show_probs = TRUE, show_acc = TRUE)
+plot(log1, log2, type = "steps")
+plot(log1, line_args = list(col = "navy"), point_args = list(col = "red"))
 sequnit_reset()
 options(old)
 }
