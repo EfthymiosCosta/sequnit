@@ -38,15 +38,17 @@
 
 #' Probability of leaving the alarm region in one commit
 #'
-#' Probability that a chart started at `H` ends a commit of `amax` steps below
-#' `h`, when the code has a defect. Uses a numerical approximation.
+#' Probability that a chart started at `H` falls below `h` at some step of a
+#' commit of `amax` steps, when the code has a defect. This bounds the
+#' probability that the commit ends below `h`, whatever the value of `v`. Uses a
+#' numerical approximation.
 #'
 #' @param gap Gap `H - h`.
 #' @param amax Maximum number of test runs per user commit.
 #' @param delta Shift parameter of the chart.
 #' @param n_low Number of cells below `h`.
 #' @param n_gap Number of cells between `h` and `H`.
-#' @return The probability of ending the user commit below `h`.
+#' @return The probability of falling below `h` during the commit.
 #' @noRd
 .leave_prob <- function(gap, amax, delta, n_low = 300, n_gap = 100) {
   h <- 10
@@ -58,9 +60,13 @@
   m <- x + delta / 2
   G <- pnorm(outer(-m, hi, "+")) - pnorm(outer(-m, lo, "+"))
   p <- c(rep(0, length(x) - 1), 1)
-  for (k in seq_len(amax))
+  left <- 0
+  for (k in seq_len(amax)) {
     p <- as.numeric(p %*% G)
-  sum(p[x < h])
+    left <- left + sum(p[x < h])
+    p[x < h] <- 0
+  }
+  left
 }
 
 #' Gap that gives a target leave probability

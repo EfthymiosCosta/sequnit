@@ -33,6 +33,6 @@ test_that("invalid settings are rejected", {
 # Zero gap and small U0; every h gives more than U0 commits between false
 # alarms, and the search stops with an error.
 test_that("a U0 that every h meets is rejected", {
-  expect_error(cusum_design(U0 = 1000, p_leave = 0.6, n_bins = 31, n_scan = 4, cores = 1),
+  expect_error(cusum_design(U0 = 1000, p_leave = 0.99, n_bins = 31, n_scan = 4, cores = 1),
                "U0 = 1000 is too small")
 })

@@ -1,5 +1,5 @@
 # The gap solves its defining equation: started at H with the code defective,
-# the chart ends one commit below h with probability p_leave.
+# the chart falls below h during one commit with probability p_leave.
 test_that("the gap gives the requested leave probability", {
   delta <- .delta(0.05, 0.2)
   for (amax in c(2L, 10L)) {

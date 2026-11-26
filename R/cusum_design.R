@@ -13,8 +13,8 @@
 #' @param cbar0max Maximum average number of test runs per user commit when the
 #'   code has no defect.
 #' @param amax Maximum number of test runs per user commit.
-#' @param p_leave Probability that the chart starts from `H` and ends below `h`
-#'   within one one user commit when the code has no defect.
+#' @param p_leave Probability that the chart, started from `H`, falls below `h`
+#'   during one user commit when the code has a defect.
 #' @param n_bins Number of bins used in the discretisation for the Markov chain
 #'   approximation. More bins are more accurate but slower.
 #' @param n_scan Number of values of `h` evaluated in the initial scan.

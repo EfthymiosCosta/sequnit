@@ -33,8 +33,8 @@ code has no defect.}
 
 \item{amax}{Maximum number of test runs per user commit.}
 
-\item{p_leave}{Probability that the chart starts from \code{H} and ends below \code{h}
-within one one user commit when the code has no defect.}
+\item{p_leave}{Probability that the chart, started from \code{H}, falls below \code{h}
+during one user commit when the code has a defect.}
 
 \item{n_bins}{Number of bins used in the discretisation for the Markov chain
 approximation. More bins are more accurate but slower.}
